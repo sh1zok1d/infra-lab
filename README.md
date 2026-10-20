@@ -44,7 +44,7 @@ Template exports and setup notes: [monitoring/zabbix](monitoring/zabbix/README.m
 - Agent availability and metric collection in **Latest data**.
 - Custom disk usage item and High-severity trigger; disk-full problem and automatic recovery (**30 seconds observed**).
 - Filesystem LLD; automatically generated items and reviewed item/trigger prototypes.
-- Telegram notification delivery (**success confirmed by the lab operator; no screenshot retained**).
+- Telegram notification delivery.
 - Troubleshooting of the agent restart loop and container DNS resolution.
 
 ## Incidents
