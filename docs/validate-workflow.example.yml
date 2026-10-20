@@ -1,0 +1,31 @@
+name: Validate infrastructure files
+on:
+  push:
+  pull_request:
+
+jobs:
+  lint-config:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate Docker Compose
+        env:
+          ZBX_DB_PASSWORD: ci-not-a-secret
+        run: docker compose -f monitoring/zabbix/docker-compose.yml config --quiet
+      - name: Validate Zabbix YAML structure
+        run: |
+          python -m pip install pyyaml
+          python - <<'PY'
+          from pathlib import Path
+          import yaml
+          for p in Path('monitoring/zabbix/templates').glob('*.yaml'):
+              document = yaml.safe_load(p.read_text())
+              assert document['zabbix_export']['version'] == '7.0'
+              print('Parsed:', p)
+          PY
+      - name: Basic secret checks
+        run: |
+          test ! -e monitoring/zabbix/.env
+          if grep -R -E '(^|[[:space:]])ZBX_DB_PASSWORD=[^$[:space:]]' --include='*.yml' --include='*.yaml' monitoring; then
+            echo 'Possible embedded password found'; exit 1
+          fi

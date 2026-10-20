@@ -1,0 +1,88 @@
+name: zabbix-lab
+
+# Zabbix 7.0 LTS monitoring lab.
+#
+# Setup:
+#   printf 'ZBX_DB_PASSWORD=%s\n' "$(openssl rand -hex 24)" > .env
+#   chmod 600 .env
+# Existing installation: COPY its working .env instead of regenerating it!
+#   docker compose up -d
+#
+# Web UI: http://127.0.0.1:8080 (Admin / zabbix — change it on first login)
+#
+# By default the agent monitors ITS OWN CONTAINER (alpine), not the Kali host.
+# For host metrics, install a separate agent on Kali or a dedicated Linux VM.
+# Do not enable privileged mode or mount the Docker socket just for this lab.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: zbx-postgres
+    environment:
+      POSTGRES_USER: zabbix
+      POSTGRES_PASSWORD: "${ZBX_DB_PASSWORD:?Create .env with ZBX_DB_PASSWORD}"
+      POSTGRES_DB: zabbix
+    volumes:
+      - zbx-pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zabbix -d zabbix"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  zabbix-server:
+    image: zabbix/zabbix-server-pgsql:alpine-7.0-latest
+    container_name: zbx-server
+    environment:
+      DB_SERVER_HOST: postgres
+      POSTGRES_USER: zabbix
+      POSTGRES_PASSWORD: "${ZBX_DB_PASSWORD:?Create .env with ZBX_DB_PASSWORD}"
+      POSTGRES_DB: zabbix
+      ZBX_CACHESIZE: 64M
+    # Reachable by other containers over the Compose network; no host port needed.
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  zabbix-web:
+    image: zabbix/zabbix-web-nginx-pgsql:alpine-7.0-latest
+    container_name: zbx-web
+    environment:
+      DB_SERVER_HOST: postgres
+      POSTGRES_USER: zabbix
+      POSTGRES_PASSWORD: "${ZBX_DB_PASSWORD:?Create .env with ZBX_DB_PASSWORD}"
+      POSTGRES_DB: zabbix
+      ZBX_SERVER_HOST: zabbix-server
+      PHP_TZ: Europe/Riga
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  zabbix-agent:
+    image: zabbix/zabbix-agent2:alpine-7.0-latest
+    container_name: zbx-agent
+    init: true
+    environment:
+      ZBX_HOSTNAME: lab-host
+      # ZBX_SERVER_HOST alone populates Server= for passive checks.
+      # Do NOT add ZBX_PASSIVESERVERS with the same value: the image appends it
+      # to Server= and the agent fails with "address specified more than once".
+      ZBX_SERVER_HOST: zabbix-server
+      ZBX_ACTIVE_ALLOW: "false"
+    # Fixed-size in-memory filesystem for a safe disk-full alert experiment.
+    # Item key: vfs.fs.size[/labdisk,pused]
+    # Fill it:  docker exec zbx-agent sh -c 'dd if=/dev/zero of=/labdisk/fill.bin bs=1M count=54'
+    # Clear it: docker exec zbx-agent rm /labdisk/fill.bin
+    tmpfs:
+      - /labdisk:size=64m,mode=1777
+    depends_on:
+      - zabbix-server
+    restart: unless-stopped
+
+volumes:
+  zbx-pgdata:

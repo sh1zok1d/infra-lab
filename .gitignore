@@ -1,0 +1,35 @@
+# Secrets (at any folder depth)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Local credentials / local overrides
+*credentials*
+secrets/
+**/secrets/
+*.local
+compose.override.yml
+compose.override.yaml
+
+# Generated data / database exports / archives
+*.log
+*.sqlite*
+*.db
+*.sql
+*.dump
+*.backup
+*.tar
+*.tar.gz
+*.zip
+__pycache__/
+.pytest_cache/
+
+# Editors / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,26 @@
+# Manually extended from lab-disk-monitoring-original.yaml.
+# Trigger: reconstructed from the host-level trigger tested on 2026-10-20.
+# This derivative has NOT yet been imported/validated against a fresh Zabbix instance.
+zabbix_export:
+  version: '7.0'
+  template_groups:
+  - uuid: 9d362a5371cd405fb2fcdb4a0e4c2457
+    name: save
+  templates:
+  - uuid: dbe232b300d04475b251dffc22cf7c0c
+    template: Lab disk monitoring
+    name: Lab disk monitoring
+    groups:
+    - name: save
+    items:
+    - uuid: f044162f5e934751b60d7fa14119aaa3
+      name: Lab disk
+      key: vfs.fs.size[/labdisk,pused]
+      delay: 30s
+      units: '%'
+      value_type: FLOAT
+      triggers:
+      - uuid: ebc5e1d990654bf1afe92c142e468a8c
+        expression: last(/Lab disk monitoring/vfs.fs.size[/labdisk,pused])>80
+        name: Lab disk usage above 80%
+        priority: HIGH

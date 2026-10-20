@@ -1,0 +1,17 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: 9d362a5371cd405fb2fcdb4a0e4c2457
+      name: save
+  templates:
+    - uuid: dbe232b300d04475b251dffc22cf7c0c
+      template: 'Lab disk monitoring'
+      name: 'Lab disk monitoring'
+      groups:
+        - name: save
+      items:
+        - uuid: f044162f5e934751b60d7fa14119aaa3
+          name: 'Lab disk'
+          key: 'vfs.fs.size[/labdisk,pused]'
+          delay: 30s
+          units: '%'
