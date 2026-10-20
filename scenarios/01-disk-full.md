@@ -1,6 +1,6 @@
 # Scenario 01 — Disk usage exceeds 80%
 
-**State:** Reproduced and recovered on 2026-10-20. **Scope:** agent container's isolated tmpfs, not Kali's filesystem.
+**State:** Reproduced and recovered on 2026-10-20. **Scope:** agent container's isolated tmpfs, not the host filesystem.
 
 ## Monitoring
 
@@ -36,4 +36,4 @@ sudo docker exec zbx-agent df -h /labdisk
 
 ![Observed problem and recovery](../docs/assets/zabbix-problem-recovery.png)
 
-**Limitation:** severity and recovery verified through the UI, not through Telegram notification delivery.
+**Telegram:** notification delivery was also reported successful by the lab operator; no Telegram screenshot is included.

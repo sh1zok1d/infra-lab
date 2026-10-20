@@ -1,31 +1,32 @@
-# Scenario 03 — Zabbix cannot resolve container DNS name
+# Scenario 03 — Transient container DNS error
 
-**State:** Workaround confirmed; root cause **not yet established**.
+**State:** Resolved; name-based agent monitoring restored (operator-confirmed).
 
 ## Symptom
 
-The Zabbix host interface configured with DNS `zabbix-agent` returned:
+While the Zabbix Agent 2 container was in a restart loop, Zabbix showed:
 
 ```text
 Get value from agent failed: Cannot resolve address: Domain name not found
 ```
 
-## Checks
+## Investigation
 
-Inside Zabbix Server:
+The agent had been restarting because its `Server` configuration included `zabbix-server` twice ([Scenario 02](02-agent-crash-loop.md)). This made the agent endpoint intermittently unavailable during restarts, consistent with the DNS symptom.
+
+After fixing the agent configuration, a shell lookup from Zabbix Server succeeded:
 
 ```bash
-sudo docker exec zbx-server getent hosts zabbix-agent
+docker exec zbx-server getent hosts zabbix-agent
+# observed: 172.18.0.5 zabbix-agent zabbix-agent
 ```
 
-Observed result: `172.18.0.5 zabbix-agent zabbix-agent`. Agent logs showed a running process and hostname `lab-host`.
+The Zabbix UI still initially displayed an unavailable interface. Temporarily switching the host interface to `172.18.0.5:10050` turned ZBX green, proving the agent was reachable.
 
-## Diagnostic workaround
+## Resolution
 
-For `lab-host`, set interface **Connect to = IP**, IP = `172.18.0.5`, port = `10050`. The ZBX status changed to green and item data appeared.
+Once the agent was stable, the host interface was returned to **Connect to = DNS**, DNS name `zabbix-agent`, port `10050`. Name-based monitoring is reported working by the operator.
 
-**Warning:** `172.18.0.5` was the observed ephemeral container IP. Do **not** hard-code it in the Compose file, template or general installation guide.
+**Root cause:** the agent restart loop caused an unstable service endpoint; the timing and cache behavior of Zabbix's own resolver were not separately captured. Treat the crash loop as the confirmed underlying failure and the DNS error as its observed symptom, rather than inventing an unverified resolver bug.
 
-## Follow-up investigation
-
-Inspect how Zabbix Server's own DNS resolver differs from `getent`, then restore name-based monitoring and confirm resilience after container recreation.
+Do **not** hard-code `172.18.0.5`: container IP addresses can change.

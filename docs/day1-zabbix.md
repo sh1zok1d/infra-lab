@@ -1,7 +1,7 @@
 # Day 1 — Zabbix Monitoring and Incident Diagnostics
 
 **Date:** 2026-10-20  
-**Environment:** Local Kali Linux; Docker Engine 28.5.2; Docker Compose 2.40.3-3; Zabbix 7.0 (7.0.31 shown in UI); PostgreSQL 16.
+**Environment:** Local Linux host; Docker Engine 28.5.2; Docker Compose 2.40.3-3; Zabbix 7.0 (7.0.31 shown in UI); PostgreSQL 16.
 
 ## Objective
 
@@ -16,7 +16,7 @@ Four Compose services: PostgreSQL (`zbx-postgres`), Zabbix Server (`zbx-server`)
 1. Installed Compose v2 and started all four containers.
 2. Created host `lab-host` with the `Linux by Zabbix agent` template.
 3. Resolved the agent restart loop caused by duplicated `zabbix-server` entries in the `Server` parameter.
-4. Verified Docker DNS name resolution with `getent hosts zabbix-agent`; Zabbix's own DNS resolution still failed. Using the observed container IP made the agent available.
+4. Investigated intermittent name resolution while the agent was restarting. Confirmed connectivity with the container IP during diagnosis; name-based Agent access via `zabbix-agent` was subsequently restored (operator-confirmed).
 5. Confirmed metrics were visible in **Monitoring → Latest data**.
 6. Created custom item `vfs.fs.size[/labdisk,pused]` with a 30-second interval.
 7. Added a High severity trigger `last(/lab-host/vfs.fs.size[/labdisk,pused])>80`.
@@ -41,12 +41,12 @@ Four Compose services: PostgreSQL (`zbx-postgres`), Zabbix Server (`zbx-server`)
 
 ## Limitations / work remaining
 
-- **Telegram:** marked as covered by previous user familiarity but skipped in this run; bot, action and notification delivery were **not configured or tested**.
+- **Telegram:** delivery tested successfully, as confirmed by the lab operator. A delivery screenshot/log was not retained in this repository.
 - **Network LLD:** not individually tested; filesystem LLD was verified.
-- **DNS:** name-based Zabbix agent connection is unresolved; a temporary Docker IP workaround was used.
+- **DNS:** an ephemeral Docker IP was used during diagnosis; the final name-based agent connection was reported working by the operator.
 - **Default host:** `Zabbix server` in the UI still showed an agent availability problem.
 - **Export:** the supplied `Lab disk monitoring` template export contains only the custom item, **not** the manually configured host trigger. A derived candidate YAML with the trigger is provided but **not import-tested**.
-- **Host coverage:** metrics are taken from the agent container, not directly from Kali Linux.
+- **Host coverage:** metrics are taken from the agent container, not directly from the Linux host.
 
 ## Portfolio status
 

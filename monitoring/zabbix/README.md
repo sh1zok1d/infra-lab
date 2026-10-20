@@ -1,21 +1,20 @@
-# Zabbix 7.0 LTS — Local monitoring lab
+# Zabbix 7.0 LTS
 
-Deploy: `docker compose up -d`, from this directory, after creating a private `.env` (`ZBX_DB_PASSWORD`).
+Four Compose services: PostgreSQL 16, Zabbix Server, Web UI and Agent 2. The agent monitors its own container and an isolated `/labdisk` tmpfs (64 MiB).
 
-Web: <http://127.0.0.1:8080> (`Admin` / `zabbix` initially; change immediately).
+## Run
 
-Services: PostgreSQL 16, Zabbix Server, Nginx Web UI and Zabbix Agent 2. The agent monitors its container.
+```bash
+printf 'ZBX_DB_PASSWORD=%s\n' "$(openssl rand -hex 24)" > .env
+chmod 600 .env
+docker compose up -d
+```
 
-Project name is pinned to `zabbix-lab` to reuse the existing `zabbix-lab_zbx-pgdata` volume after moving the Compose file.
+Open <http://127.0.0.1:8080> (`Admin` / `zabbix` initially; change the password).
 
-Create a host named `lab-host`, link `Linux by Zabbix agent`, and configure agent interface port `10050`.
+Create `lab-host` with the `Linux by Zabbix agent` template and Agent interface DNS `zabbix-agent`, port `10050`. Create an item with key `vfs.fs.size[/labdisk,pused]` (float, 30s) and a High trigger `last(/lab-host/vfs.fs.size[/labdisk,pused])>80`.
 
-The original lab used Docker DNS `zabbix-agent` but hit a Zabbix-side resolution error; `172.18.0.5` worked as a **temporary** diagnostic address. That IP is not portable.
+- [Original template export](templates/lab-disk-monitoring-original.yaml) — custom item only.
+- [Derived template with trigger](templates/lab-disk-monitoring-with-trigger.yaml) — a draft that **has not been import-tested**. Do not import it on top of a host item with the same key without resolving the conflict.
 
-Original exported custom template: [`templates/lab-disk-monitoring-original.yaml`](templates/lab-disk-monitoring-original.yaml) — **item only**.
-
-Derived candidate template: [`templates/lab-disk-monitoring-with-trigger.yaml`](templates/lab-disk-monitoring-with-trigger.yaml) — manually adds the high-severity trigger. It is **not yet import-tested**. Do not link it to `lab-host` before removing/replacing the existing host-level item with the same key.
-
-Smoke check: from the repository root run `bash scripts/check-zabbix.sh`.
-
-Incident and recovery: [Scenario 01](../../scenarios/01-disk-full.md). Existing lab migration: [adoption guide](../../docs/adopt-existing-lab.md).
+Run the [disk-full test](../../scenarios/01-disk-full.md) and review the [Day 1 report](../../docs/day1-zabbix.md). Telegram delivery was confirmed by the operator; its UI configuration is not part of Compose.

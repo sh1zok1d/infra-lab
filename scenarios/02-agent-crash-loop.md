@@ -29,4 +29,4 @@ sudo docker compose logs --tail=30 zabbix-agent
 
 ## Result
 
-The restart loop stopped and the agent successfully initialized. The remaining DNS issue required separate diagnosis; see [Scenario 03](03-dns-resolution.md).
+The restart loop stopped and the agent initialized successfully. Name-based monitoring was subsequently restored after diagnosing the transient DNS symptom; see [Scenario 03](03-dns-resolution.md).

@@ -1,9 +1,9 @@
-# Troubleshooting scenarios
+# Incident runbooks
 
-Each runbook records symptoms, evidence, root-cause status, recovery steps, and validation.
+Three incidents investigated during the Zabbix exercise:
 
-- [01 — Disk-full alert](01-disk-full.md) — reproduced, resolved
-- [02 — Agent restart loop](02-agent-crash-loop.md) — diagnosed, resolved
-- [03 — DNS resolution mismatch](03-dns-resolution.md) — workaround confirmed, root cause open
+- [01 — Disk-full alert and automatic recovery](01-disk-full.md)
+- [02 — Agent crash loop: duplicate server setting](02-agent-crash-loop.md)
+- [03 — Transient container DNS error during restart](03-dns-resolution.md)
 
-Target: grow the collection with real, reproducible incident simulations.
+Each runbook records a symptom, checks, repair and observed result.

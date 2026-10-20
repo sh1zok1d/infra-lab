@@ -5,13 +5,12 @@ name: zabbix-lab
 # Setup:
 #   printf 'ZBX_DB_PASSWORD=%s\n' "$(openssl rand -hex 24)" > .env
 #   chmod 600 .env
-# Existing installation: COPY its working .env instead of regenerating it!
 #   docker compose up -d
 #
 # Web UI: http://127.0.0.1:8080 (Admin / zabbix — change it on first login)
 #
-# By default the agent monitors ITS OWN CONTAINER (alpine), not the Kali host.
-# For host metrics, install a separate agent on Kali or a dedicated Linux VM.
+# The agent monitors its own container (Alpine), not the local Linux host.
+# For host metrics, install a separate agent directly on a Linux host.
 # Do not enable privileged mode or mount the Docker socket just for this lab.
 
 services:

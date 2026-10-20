@@ -1,44 +1,24 @@
-# Infrastructure & Observability Lab
+# Infra Lab — Zabbix monitoring
 
-A hands-on Linux infrastructure portfolio that grows through reproducible monitoring, network troubleshooting, failure simulations, and automation.
+A small, reproducible Linux monitoring lab using **Zabbix 7.0 LTS**, Docker Compose and PostgreSQL. The first exercise covers a custom disk-usage metric, threshold alerting, low-level discovery and incident recovery.
 
-**Goal:** demonstrate practical Linux / Infrastructure / Network Operations engineering, not just installation screenshots.
-
-## Progress
-
-| Component | Status | Evidence |
-| --- | --- | --- |
-| Zabbix 7.0 LTS with PostgreSQL and Agent 2 | Done (local Kali) | [Day 1 report](docs/day1-zabbix.md) |
-| Custom disk-usage item and high-severity trigger | Tested manually | [Disk-full incident](scenarios/01-disk-full.md) |
-| Filesystem low-level discovery (LLD) | Inspected and observed | [Day 1 report](docs/day1-zabbix.md) |
-| Telegram delivery | Skipped by choice; **not tested** | [Day 1 report](docs/day1-zabbix.md) |
-| Prometheus, Grafana and Alertmanager | Planned | [Monitoring roadmap](monitoring/prometheus/README.md) |
-| Ansible | Planned | [Ansible roadmap](ansible/README.md) |
-| Application infrastructure and backups | Planned | [Stack roadmap](stack/README.md) |
-
-## Architecture (Day 1)
+## Architecture
 
 ```text
-  Local browser http://127.0.0.1:8080
-                  |
-              Zabbix Web
-                  |
-       +----------+----------+
-       |                     |
-  PostgreSQL <------> Zabbix Server
-                             |
-                    Docker internal network
-                             |
-                       Zabbix Agent 2
-                             |
-                      /labdisk (64 MiB tmpfs)
+Browser (127.0.0.1:8080) -> Zabbix Web
+                                  |
+                             PostgreSQL
+                                  |
+Zabbix Server -> Zabbix Agent 2 (lab-host)
+                      |
+                /labdisk (64 MiB tmpfs)
 ```
 
-The agent observes its own container, **not the Kali host**. Future work adds host-level monitoring.
+All services run in Docker. The agent observes **its container**, not the underlying Linux host.
 
-## Quick start (fresh deployment)
+## Quick start
 
-Requires Linux, Docker Engine and Docker Compose v2. The Zabbix database password must stay out of Git.
+Requires Linux, Docker Engine and Docker Compose v2.
 
 ```bash
 cd monitoring/zabbix
@@ -49,39 +29,34 @@ docker compose up -d
 docker compose ps
 ```
 
-Open <http://127.0.0.1:8080>; initial credentials are `Admin` / `zabbix` — **change the password immediately**.
+Open <http://127.0.0.1:8080> (initial credentials: `Admin` / `zabbix`; change the password). In **Data collection → Hosts**, create `lab-host`, use the `Linux by Zabbix agent` template and an Agent interface with **DNS** `zabbix-agent`, port `10050`.
 
-To reproduce the monitoring configuration, see the [Zabbix README](monitoring/zabbix/README.md). The PostgreSQL volume persists across normal `docker compose down`; **do not use `down -v`** on the existing lab.
-
-**Existing Kali installation:** follow the [migration guide](docs/adopt-existing-lab.md) rather than creating a fresh `.env` or launching a duplicate Compose project.
-
-## Troubleshooting stories
-
-- [01 — Disk capacity threshold and recovery](scenarios/01-disk-full.md)
-- [02 — Agent crash loop from duplicate server address](scenarios/02-agent-crash-loop.md)
-- [03 — Container DNS resolution mismatch](scenarios/03-dns-resolution.md)
-
-## Repository structure
+For the custom check, create a Zabbix-agent item with key `vfs.fs.size[/labdisk,pused]`, type `Numeric (float)`, update interval `30s`, and a High-severity trigger:
 
 ```text
-monitoring/zabbix/       Tested infrastructure and original/derived template files
-monitoring/prometheus/  Reserved for the next monitoring stack
-ansible/                Planned provisioning and configuration management
-stack/                  Planned sample application infrastructure
-scenarios/              Failure/recovery runbooks
-scripts/                Local preflight checks
-.github/workflows/       Static configuration validation on pushes and PRs
-docs/                   Lab reports, migration notes, evidence
+last(/lab-host/vfs.fs.size[/labdisk,pused])>80
 ```
 
-## Security and validation
+Template exports and setup notes: [monitoring/zabbix](monitoring/zabbix/README.md).
 
-- Web UI binds to `127.0.0.1:8080` only; Zabbix server and agent ports are not published externally.
-- `.env` is ignored; only `.env.example` is committed.
-- Do not commit tokens, local database volumes, machine-specific addresses or backup dumps.
-- `bash scripts/check-zabbix.sh` checks the running local deployment without intentionally causing an incident.
-- GitHub Actions checks Compose parsing and exported YAML structure; it does **not** deploy Zabbix or test the custom template import.
+## Tested
 
-## Next engineering tasks
+- Agent availability and metric collection in **Latest data**.
+- Custom disk usage item and High-severity trigger; disk-full problem and automatic recovery (**30 seconds observed**).
+- Filesystem LLD; automatically generated items and reviewed item/trigger prototypes.
+- Telegram notification delivery (**success confirmed by the lab operator; no screenshot retained**).
+- Troubleshooting of the agent restart loop and container DNS resolution.
 
-Resolve Zabbix async DNS lookup (currently temporarily works via container IP), fix the default `Zabbix server` host, and validate a fresh import of the derived monitoring template. These remain open, rather than being presented as production-ready.
+## Incidents
+
+- [Disk-full alert and recovery](scenarios/01-disk-full.md)
+- [Agent restart loop](scenarios/02-agent-crash-loop.md)
+- [DNS resolution during agent restart](scenarios/03-dns-resolution.md)
+
+[Day 1 report and screenshots](docs/day1-zabbix.md)
+
+## Security
+
+The Web UI binds only to `127.0.0.1:8080`; server/agent ports are not published on the host. `.env` and credentials are excluded from Git. Telegram integration and the host's custom monitoring objects were configured through the UI, so a fresh Compose launch requires the manual steps above.
+
+**Next:** Prometheus/Grafana and Ansible.
