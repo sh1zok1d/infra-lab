@@ -40,7 +40,7 @@ Grafana login: `admin`, password from `cat .env` (do not commit it).
 - Prometheus alerts: http://127.0.0.1:9090/alerts
 - Alertmanager: http://127.0.0.1:9093
 - Grafana: http://127.0.0.1:3000
-- Echo receiver: http://127.0.0.1:8081
+- Echo receiver (JSON endpoint): http://127.0.0.1:8081/alerts/alerts
 
 First verify `prometheus` and `node` are both **UP**, then run:
 
@@ -73,7 +73,7 @@ Watch `LabDiskAlmostFull` at http://127.0.0.1:9090/alerts:
 1. Metric crosses 80%; after a rule evaluation the alert becomes **Pending**.
 2. After continuously true for `30s`, the alert becomes **Firing**.
 3. Alertmanager groups it, waits `group_wait: 10s`, then POSTs to `alert-echo`.
-4. `sudo docker compose logs --tail=80 alert-echo` and http://127.0.0.1:8081
+4. `sudo docker compose logs --tail=80 alert-echo` and http://127.0.0.1:8081/alerts
    show the actual JSON payload (`status=firing`).
 
 Resolve:
@@ -110,6 +110,8 @@ The included `infra-lab-overview.json` appears on first startup.
 Optionally import community dashboard **1860** from the Grafana UI (internet
 may be required). Export its JSON into `grafana/dashboards/node-exporter-full.json`.
 Grafana periodically scans the directory, so restart is usually unnecessary.
+
+See the [verified Day 2 report](../../docs/day2-prometheus.md) and the [synthetic inhibition test](../../scenarios/06-alertmanager-inhibition.md). The Grafana dashboard was verified to remain available after a Grafana restart.
 
 ## What to capture for GitHub
 
