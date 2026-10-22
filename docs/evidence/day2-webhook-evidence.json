@@ -1,0 +1,27 @@
+{
+  "source": "Operator-captured alert-echo /alerts JSON during Day 2 lab",
+  "date": "2026-10-22",
+  "timezone": "UTC",
+  "alertname": "LabDiskAlmostFull",
+  "instance": "lab-host",
+  "job": "node",
+  "mountpoint": "/labdisk",
+  "severity": "warning",
+  "events": [
+    {
+      "status": "firing",
+      "startsAt": "2026-10-22T14:48:49.323Z",
+      "received_at": "2026-10-22T14:48:59.342417+00:00"
+    },
+    {
+      "status": "resolved",
+      "startsAt": "2026-10-22T14:48:49.323Z",
+      "endsAt": "2026-10-22T14:55:04.323Z",
+      "received_at": "2026-10-22T14:55:14.401439+00:00"
+    }
+  ],
+  "notes": [
+    "Extract of captured JSON fields, not a raw unchanged copy.",
+    "startsAt may represent beginning of the pending interval; do not infer exact firing transition time."
+  ]
+}
