@@ -1,0 +1,98 @@
+name: infra-prometheus-lab
+services:
+  prometheus:
+    image: prom/prometheus:v3.6.0
+    container_name: lab-prometheus
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=7d
+      - --web.enable-lifecycle
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/rules:/etc/prometheus/rules:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "127.0.0.1:9090:9090"
+    depends_on:
+      - node-exporter
+      - alertmanager
+
+  node-exporter:
+    image: prom/node-exporter:v1.9.1
+    container_name: node-exporter
+    restart: unless-stopped
+    # CPU and memory counters originate from Linux /proc and /sys; the demo
+    # /labdisk mount is intentionally scoped to this container.
+    command:
+      - --web.listen-address=:9100
+      - --collector.filesystem.mount-points-exclude=^/(dev|proc|sys|run)($|/)
+    read_only: true
+    volumes:
+      - labdisk:/labdisk:ro
+    expose:
+      - "9100"
+
+  alertmanager:
+    image: prom/alertmanager:v0.28.1
+    container_name: lab-alertmanager
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --storage.path=/alertmanager
+    volumes:
+      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager-data:/alertmanager
+    ports:
+      - "127.0.0.1:9093:9093"
+    depends_on:
+      - alert-echo
+
+  grafana:
+    image: grafana/grafana:12.1.1
+    container_name: lab-grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GF_SECURITY_ADMIN_PASSWORD:?Create .env with GF_SECURITY_ADMIN_PASSWORD}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      - prometheus
+
+  alert-echo:
+    image: python:3.12-alpine
+    container_name: lab-alert-echo
+    restart: unless-stopped
+    working_dir: /app
+    command: ["python", "-u", "/app/receiver.py"]
+    volumes:
+      - ./receiver/receiver.py:/app/receiver.py:ro
+    ports:
+      - "127.0.0.1:8081:8080"
+
+  # Optional utility: this profile is NOT launched by docker compose up -d.
+  # The exporter image is minimal and does not have sh or dd.
+  disk-writer:
+    image: busybox:1.36
+    profiles: ["tools"]
+    entrypoint: ["/bin/sh"]
+    volumes:
+      - labdisk:/labdisk
+
+volumes:
+  prometheus-data:
+  alertmanager-data:
+  grafana-data:
+  labdisk:
+    driver: local
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+      o: size=64m,mode=1777

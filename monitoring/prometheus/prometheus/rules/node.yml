@@ -1,0 +1,45 @@
+groups:
+  - name: infra-lab
+    interval: 15s
+    rules:
+      - alert: TargetDown
+        expr: up{job="node"} == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "node_exporter unavailable on {{ $labels.instance }}"
+          description: "Prometheus cannot scrape the node target."
+
+      - alert: LabDiskAlmostFull
+        expr: 100 * (1 - node_filesystem_avail_bytes{job="node",mountpoint="/labdisk"} / node_filesystem_size_bytes{job="node",mountpoint="/labdisk"}) > 80
+        for: 30s
+        labels:
+          severity: warning
+        annotations:
+          summary: "Lab disk is over 80% full on {{ $labels.instance }}"
+          description: "Test tmpfs volume /labdisk passed the threshold."
+
+      - alert: NodeHighCPU
+        expr: 100 - avg by (instance) (rate(node_cpu_seconds_total{job="node", mode="idle"}[5m])) * 100 > 90
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "CPU usage above 90% on {{ $labels.instance }}"
+
+      - alert: NodeLowMemory
+        expr: (node_memory_MemAvailable_bytes{job="node"} / node_memory_MemTotal_bytes{job="node"}) < 0.1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Available memory below 10% on {{ $labels.instance }}"
+
+      - alert: NodeReceiveErrors
+        expr: sum by (instance) (rate(node_network_receive_errs_total{job="node"}[5m])) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Network receive errors observed on {{ $labels.instance }}"

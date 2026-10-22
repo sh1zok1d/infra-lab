@@ -1,0 +1,19 @@
+route:
+  receiver: echo
+  group_by: [alertname, instance]
+  group_wait: 10s
+  group_interval: 15s
+  repeat_interval: 3h
+
+receivers:
+  - name: echo
+    webhook_configs:
+      - url: http://alert-echo:8080/alerts
+        send_resolved: true
+
+inhibit_rules:
+  - source_matchers:
+      - alertname="TargetDown"
+    target_matchers:
+      - severity="warning"
+    equal: [instance]
