@@ -44,3 +44,5 @@ wrong, not the service — confirmed by systemctl status and the actual HTTP res
 - systemctl cat shows the effective unit including drop-ins — the fastest way to see what an override changed.
 - An empty ExecStart= line in a drop-in is intentional: it clears the list before setting a new value.
 - Verify the verifier: a failing check with a healthy service means the check is wrong.
+- set -o pipefail turns a non-zero exit anywhere in a pipe into failure; test checks inside the script's shell options, not only in an interactive shell.
+- A break script that runs on a typo (-verify vs --verify) is a footgun; destructive actions should need an explicit argument.
