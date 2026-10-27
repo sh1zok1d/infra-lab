@@ -69,7 +69,10 @@ Grafana username: `admin`; password from your local `monitoring/prometheus/.env`
 | 04 | [Prometheus disk-full and recovery](scenarios/04-prometheus-disk-full.md) | Metrics, Pending/Firing, real firing/resolved webhooks |
 | 05 | [node_exporter down](scenarios/05-node-exporter-down.md) | Target health / critical alert |
 | 06 | [Alertmanager inhibition](scenarios/06-alertmanager-inhibition.md) | Suppressing secondary notifications using matching labels |
-
+| 07 | [Inode exhaustion](troubleshooting/scenarios/07-inode-exhaustion.md) | "No space left" with free bytes; df -i, find by directory |
+| 08 | [Service restart loop](troubleshooting/scenarios/08-service-override.md) | 203/EXEC, systemctl cat, drop-in overrides, revert |
+| 09 | [Port conflict](troubleshooting/scenarios/09-port-conflict.md) | ss -tlnp, identifying an unmanaged process, when kill is safe |
+| 10 | [DNS resolution](troubleshooting/scenarios/10-dns-resolution.md) | resolved drop-ins, /etc/hosts precedence, verify the verifier |
 Actual Day 2 webhook timestamps: [JSON evidence extract](docs/evidence/day2-webhook-evidence.json).
 
 ## Zabbix vs Prometheus — observed in these labs

@@ -4,7 +4,7 @@ set -euo pipefail
 [[ $EUID -eq 0 ]] || { echo "run with sudo"; exit 1; }
 
 if [[ "${1:-}" == "--verify" ]]; then
-  if getent hosts deb.debian.org >/dev/null && getent hosts archive.ubuntu.com >/dev/null; then echo "FIXED"; exit 0
+  if getent hosts deb.debian.org | grep -qv '^127\.' && getent hosts archive.ubuntu.com | grep -qv '^127\.'; then echo "FIXED"; exit 0
   else echo "STILL BROKEN"; exit 1; fi
 fi
 
