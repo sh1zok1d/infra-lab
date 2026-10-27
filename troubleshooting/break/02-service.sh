@@ -4,7 +4,7 @@ set -euo pipefail
 [[ $EUID -eq 0 ]] || { echo "run with sudo"; exit 1; }
 
 if [[ "${1:-}" == "--verify" ]]; then
-  if systemctl is-active -q labapp && curl -s http://127.0.0.1:8085/ 2>/dev/null | grep -q "labapp OK"; then echo "FIXED"; exit 0
+  if systemctl is-active -q labapp && { curl -s http://127.0.0.1:8085/ 2>/dev/null || true; } | grep -q "labapp OK"; then echo "FIXED"; exit 0
   else echo "STILL BROKEN"; exit 1; fi
 fi
 
