@@ -1,6 +1,6 @@
 # Scenario 04 — Prometheus disk alert and recovery
 
-**Outcome:** PASS, 2026-10-22. Reproduced on a 64 MiB tmpfs `/labdisk` visible to the node_exporter container; **not** on the Kali root filesystem.
+**Outcome:** PASS, 2026-10-22. Reproduced on a 64 MiB tmpfs `/labdisk` visible to the node_exporter container; **not** on the host root filesystem.
 
 ## Symptom and detection
 

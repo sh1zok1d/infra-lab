@@ -1,6 +1,6 @@
 # Infra Lab — Linux Monitoring & Incident Response
 
-A hands-on, growing infrastructure portfolio built on local **Kali Linux + Docker Compose**. The focus is not just launching containers: each lab includes monitored signals, an intentionally induced failure, troubleshooting, recovery, and a documented verification trail.
+A hands-on, growing infrastructure portfolio built on Linux + Docker Compose (Docker host) and a separate Ubuntu 24.04 VM for troubleshooting drills. The focus is not just launching containers: each lab includes monitored signals, an intentionally induced failure, troubleshooting, recovery, and a documented verification trail.
 
 ## Labs at a glance
 
@@ -9,7 +9,7 @@ A hands-on, growing infrastructure portfolio built on local **Kali Linux + Docke
 | Day 1 | Zabbix 7.0 LTS, Agent 2, PostgreSQL | Custom disk item / High trigger, filesystem LLD, synthetic disk incident with 30-second **event duration** | [Zabbix report](docs/day1-zabbix.md) |
 | Day 2 | Prometheus 3.6.0, node_exporter, Alertmanager, Grafana | PromQL, disk alert Pending → Firing → Resolved, real webhook deliveries, exporter outage, inhibition, file-provisioned dashboard | [Prometheus report](docs/day2-prometheus.md) |
 
-**Scope:** The Zabbix agent observes its container. The Prometheus exporter exposes Linux CPU/memory kernel counters and container-visible mounts. Both disk-full experiments use a dedicated **64 MiB tmpfs**; neither is a destructive test of the Kali root disk.
+**Scope:** The Zabbix agent observes its container. The Prometheus exporter exposes Linux CPU/memory kernel counters and container-visible mounts. Both disk-full experiments use a dedicated **64 MiB tmpfs**; neither is a destructive test of the host root disk.
 
 ## Architecture
 

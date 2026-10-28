@@ -19,11 +19,11 @@ and is used only for short-lived one-shot commands.
 
 **Metrics scope:** Node exporter reads Linux kernel CPU/memory counters from
 its container, and filesystem metrics from mounts visible inside that container.
-The 64 MiB `/labdisk` volume is NOT a Kali host mount, and these stats should
+The 64 MiB `/labdisk` volume is NOT a host mount, and these stats should
 not be misrepresented as full host monitoring. `/labdisk` uses a shared Docker
 volume backed by tmpfs. Only the test volume is filled.
 
-## Setup (run in Kali)
+## Setup (run on the Docker host)
 
 ```bash
 cd ~/infra-lab/monitoring/prometheus
@@ -61,7 +61,7 @@ rate(node_cpu_seconds_total{job="node",mode="idle"}[5m])
 The node-exporter official image is minimal and generally has no `sh`/`dd`.
 **Do not** use `docker exec node-exporter sh ...`.
 
-Run from Kali in this directory:
+Run from the Docker host in this directory:
 
 ```bash
 sudo docker compose run --rm -T disk-writer -c 'dd if=/dev/zero of=/labdisk/fill.bin bs=1M count=54 && df -h /labdisk'
